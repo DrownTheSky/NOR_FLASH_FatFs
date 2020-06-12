@@ -1,0 +1,109 @@
+#include "stm32f4xx.h"
+#include "./usart/bsp_usart.h"
+#include "ff.h"
+#include <string.h>
+
+void Fatfs_Mkfs(void);
+void Get_FatFs_Infor(void);
+void FatFs_Read_Write(void);
+
+FATFS fs;
+FRESULT fr;
+FIL fil;
+
+int main(void)
+{
+	USART_init();
+
+	fr = f_mount(&fs, "", 1);
+	if (fr == 0)
+		printf("\nFatFs挂载成功\n");
+	else
+		printf("\nFatFs挂载失败,错误代码(%d)\n", fr);
+
+	Fatfs_Mkfs();
+	Get_FatFs_Infor();
+	FatFs_Read_Write();
+	Get_FatFs_Infor();
+
+	while (1)
+	{
+	}
+}
+
+void Fatfs_Mkfs(void)
+{
+	uint8_t Temp[4096];
+	fr = f_mkfs("", 0, Temp, 4096);
+
+	if (fr == 0)
+		printf("\n格式化成功\n");
+	else
+		printf("\n格式化失败,错误代码(%d)\n", fr);
+}
+
+void Get_FatFs_Infor(void)
+{
+	FATFS *pfs;
+	DWORD fr_clust, fr_sect, tot_sect;
+
+	/* 获取设备信息和空簇大小 */
+	fr = f_getfree("", &fr_clust, &pfs);
+
+	/* 计算得到总的扇区个数和空扇区个数 */
+	tot_sect = (pfs->n_fatent - 2) * pfs->csize;
+	fr_sect = fr_clust * pfs->csize;
+
+	printf("\n设备总空间：%10lu KB。\n可用空间：  %10lu KB。\n",
+		   (unsigned long)tot_sect * 4, (unsigned long)fr_sect * 4);
+}
+
+void FatFs_Read_Write(void)
+{
+	uint8_t Temp = 0;
+	UINT bw;
+	uint8_t str[100] = "FATFS读写文件测试";
+
+	fr = f_open(&fil, "0:Test.txt", FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
+	if (fr == 0)
+		printf("\n文件打开成功\n");
+	else
+		printf("\n文件打开失败,错误代码(%d)\n", fr);
+
+	fr = f_write(&fil, &str, strlen((char *)str), &bw);
+	if (fr == 0)
+		printf("\n文件写入成功,写入字节数 %d \n", bw);
+	else
+		printf("\n文件写入失败,错误代码(%d)\n", fr);
+
+	fr = f_lseek(&fil, f_size(&fil));
+	if (fr == 0)
+		printf("\n偏移光标成功,偏移数 %d \n", f_size(&fil));
+	else
+		printf("\n偏移光标失败\n");
+
+	Temp += f_printf(&fil, "\n添加新内容\n");
+	Temp += f_printf(&fil, "当前字符数 ：%d\n", f_size(&fil));
+	if (Temp > 0)
+		printf("\n添加新内容成功,字节数为 ：%d\n", Temp);
+	else
+		printf("\n添加新内容失败\n");
+
+	fr = f_lseek(&fil, 0);
+	if (fr == 0)
+		printf("\n偏移光标成功,偏移数 %d \n", 0);
+	else
+		printf("\n偏移光标失败\n");
+
+	fr = f_read(&fil, &str, f_size(&fil), &bw);
+	if (fr == 0)
+		printf("\n文件读取成功,读取字节数 %d \n读取内容 ：\n%s\n", bw, str);
+	else
+		printf("\n文件写入失败,错误代码(%d)\n", fr);
+
+	fr = f_close(&fil);
+	if (fr == 0)
+		printf("\n文件关闭成功\n");
+	else
+		printf("\n文件关闭失败,错误代码(%d)\n", fr);
+}
