@@ -165,7 +165,7 @@ DRESULT disk_ioctl(
 	case SPI_NOR_FLASH:
 		switch (cmd)
 		{
-		/* 扇区数量：4096 */
+		/* 扇区数量 */
 		case GET_SECTOR_COUNT:
 			*(DWORD *)buff = 4096;
 			break;
