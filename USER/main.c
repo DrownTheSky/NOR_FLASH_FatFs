@@ -5,6 +5,8 @@
 
 void Fatfs_Mkfs(void);
 void Get_FatFs_Infor(void);
+void FatFs_Read(void);
+void FatFs_Write(void);
 void FatFs_Read_Write(void);
 
 FATFS fs;
@@ -25,6 +27,8 @@ int main(void)
 	Get_FatFs_Infor();
 	FatFs_Read_Write();
 	Get_FatFs_Infor();
+	FatFs_Write();
+	FatFs_Read();
 
 	while (1)
 	{
@@ -33,8 +37,7 @@ int main(void)
 
 void Fatfs_Mkfs(void)
 {
-	uint8_t Temp[4096];
-	fr = f_mkfs("", 0, Temp, 4096);
+	fr = f_mkfs("",0,0);
 
 	if (fr == 0)
 		printf("\n格式化成功\n");
@@ -78,7 +81,7 @@ void FatFs_Read_Write(void)
 
 	fr = f_lseek(&fil, f_size(&fil));
 	if (fr == 0)
-		printf("\n偏移光标成功,偏移数 %d \n", f_size(&fil));
+		printf("\n偏移光标成功,偏移数 %d \n", (int)f_size(&fil));
 	else
 		printf("\n偏移光标失败\n");
 
@@ -107,3 +110,64 @@ void FatFs_Read_Write(void)
 	else
 		printf("\n文件关闭失败,错误代码(%d)\n", fr);
 }
+
+void FatFs_Read(void)
+{
+	UINT bw;
+	uint8_t str[100];
+	
+	fr = f_open(&fil, "0:Test.txt", FA_READ);
+	if (fr == 0)
+		printf("\n文件打开成功\n");
+	else
+		printf("\n文件打开失败,错误代码(%d)\n", fr);
+	
+	fr = f_lseek(&fil, 0);
+	if (fr == 0)
+		printf("\n偏移光标成功,偏移数 %d \n", 0);
+	else
+		printf("\n偏移光标失败\n");
+	
+	fr = f_read(&fil, &str, sizeof(str), &bw);
+	if (fr == 0)
+		printf("\n文件读取成功,读取字节数 %d \n读取内容 ：\n%s\n", bw, str);
+	else
+		printf("\n文件写入失败,错误代码(%d)\n", fr);
+
+	fr = f_close(&fil);
+	if (fr == 0)
+		printf("\n文件关闭成功\n");
+	else
+		printf("\n文件关闭失败,错误代码(%d)\n", fr);
+}
+
+void FatFs_Write(void)
+{
+	UINT bw;
+	uint8_t str[] = "123一二三abc";
+	
+	fr = f_open(&fil, "0:Test.txt", FA_WRITE);
+	if (fr == 0)
+		printf("\n文件打开成功\n");
+	else
+		printf("\n文件打开失败,错误代码(%d)\n", fr);
+	
+	fr = f_lseek(&fil, f_size(&fil));
+	if (fr == 0)
+		printf("\n偏移光标成功,偏移数 %d \n", (int)f_size(&fil));
+	else
+		printf("\n偏移光标失败\n");
+	
+	fr = f_write(&fil, &str, strlen((char *)str), &bw);
+	if (fr == 0)
+		printf("\n文件写入成功,写入字节数 %d \n", bw);
+	else
+		printf("\n文件写入失败,错误代码(%d)\n", fr);
+
+	fr = f_close(&fil);
+	if (fr == 0)
+		printf("\n文件关闭成功\n");
+	else
+		printf("\n文件关闭失败,错误代码(%d)\n", fr);
+}
+

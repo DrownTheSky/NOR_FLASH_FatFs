@@ -32,7 +32,6 @@
 #define SPI_FLASH_CE_ENABLE GPIO_ResetBits(SPI_FLASH_CE_GPIO_PORT, SPI_FLASH_CE_GPIO_PIN)
 
 #define SPI_FLASH_PageSize 256
-#define SPI_FLASH_PerWritePageSize 256
 
 #define DUMMY 0xFF
 #define WRITE_ENABLE 0x06

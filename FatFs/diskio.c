@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------*/
-/* Low level disk I/O module skeleton for FatFs     (C)ChaN, 2019        */
+/* Low level disk I/O module skeleton for FatFs     (C)ChaN, 2014        */
 /*-----------------------------------------------------------------------*/
 /* If a working storage control module is available, it should be        */
 /* attached to the FatFs via a glue function rather than modifying it.   */
@@ -7,19 +7,19 @@
 /* storage control modules to the FatFs module with a defined API.       */
 /*-----------------------------------------------------------------------*/
 
-#include "ff.h"		/* Obtains integer types */
-#include "diskio.h" /* Declarations of disk functions */
+#include "diskio.h"		/* FatFs lower layer API */
 #include "./spi/bsp_spi.h"
 
 /* Definitions of physical drive number for each drive */
-#define SPI_NOR_FLASH 0 /* Example: SPI_FLISH to physical drive 0 */
+#define SPI_NOR_FLASH		0	/* Example: SPI_FLISH to physical drive 0 */
+
 
 /*-----------------------------------------------------------------------*/
-/* 获取设备状态                                                      */
+/* Get Drive Status                                                      */
 /*-----------------------------------------------------------------------*/
 
-DSTATUS disk_status(
-	BYTE pdrv /* 标识驱动器的物理驱动器号 */
+DSTATUS disk_status (
+	BYTE pdrv		/* Physical drive nmuber to identify the drive */
 )
 {
 
@@ -45,12 +45,14 @@ DSTATUS disk_status(
 	return status;
 }
 
+
+
 /*-----------------------------------------------------------------------*/
-/* 安装驱动器                                                    */
+/* Inidialize a Drive                                                    */
 /*-----------------------------------------------------------------------*/
 
-DSTATUS disk_initialize(
-	BYTE pdrv /* 标识驱动器的物理驱动器号 */
+DSTATUS disk_initialize (
+	BYTE pdrv				/* Physical drive nmuber to identify the drive */
 )
 {
 	DSTATUS status = STA_NOINIT;
@@ -77,15 +79,17 @@ DSTATUS disk_initialize(
 	return status;
 }
 
+
+
 /*-----------------------------------------------------------------------*/
-/* 读取扇区                                                       */
+/* Read Sector(s)                                                        */
 /*-----------------------------------------------------------------------*/
 
-DRESULT disk_read(
-	BYTE pdrv,	  /* 标识驱动器的物理驱动器号 */
-	BYTE *buff,	  /* 数据缓冲区，用于存储读取的数据 */
-	LBA_t sector, /* LBA中的起始扇区 */
-	UINT count	  /* 要读取的扇区数目 */
+DRESULT disk_read (
+	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
+	BYTE *buff,		/* Data buffer to store read data */
+	DWORD sector,	/* Sector address in LBA */
+	UINT count		/* Number of sectors to read */
 )
 {
 	DRESULT status = RES_PARERR;
@@ -106,17 +110,18 @@ DRESULT disk_read(
 	return status;
 }
 
+
+
 /*-----------------------------------------------------------------------*/
-/* 写入扇区                                                       */
+/* Write Sector(s)                                                       */
 /*-----------------------------------------------------------------------*/
 
-#if FF_FS_READONLY == 0
-
-DRESULT disk_write(
-	BYTE pdrv,		  /* Physical drive nmuber to identify the drive */
-	const BYTE *buff, /* Data to be written */
-	LBA_t sector,	  /* Start sector in LBA */
-	UINT count		  /* Number of sectors to write */
+#if _USE_WRITE
+DRESULT disk_write (
+	BYTE pdrv,			/* Physical drive nmuber to identify the drive */
+	const BYTE *buff,	/* Data to be written */
+	DWORD sector,		/* Sector address in LBA */
+	UINT count			/* Number of sectors to write */
 )
 {
 	uint32_t write_addr;
@@ -144,17 +149,18 @@ DRESULT disk_write(
 
 	return status;
 }
-
 #endif
+
 
 /*-----------------------------------------------------------------------*/
 /* Miscellaneous Functions                                               */
 /*-----------------------------------------------------------------------*/
 
-DRESULT disk_ioctl(
-	BYTE pdrv, /* Physical drive nmuber (0..) */
-	BYTE cmd,  /* 控制指令 */
-	void *buff /* Buffer to send/receive control data */
+#if _USE_IOCTL
+DRESULT disk_ioctl (
+	BYTE pdrv,		/* Physical drive nmuber (0..) */
+	BYTE cmd,		/* Control code */
+	void *buff		/* Buffer to send/receive control data */
 )
 {
 	DRESULT status = RES_PARERR;
@@ -186,3 +192,4 @@ DRESULT disk_ioctl(
 	}
 	return status;
 }
+#endif
